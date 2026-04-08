@@ -161,13 +161,20 @@ export default function SettingsScreen({
           </View>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.row} onPress={() => {
-            Alert.alert('Reset subjects', 'This will restore default UPSC CSE subjects. Your custom subjects will be removed.', [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Reset', onPress: onResetSubjects },
-            ]);
+            Alert.alert(
+              'Clear all subjects',
+              'Removes all subjects. Re-add them via Settings → My exams.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Clear', style: 'destructive', onPress: onResetSubjects },
+              ]
+            );
           }}>
-            <Text style={styles.rowLabel}>Reset subjects to default</Text>
-            <Text style={styles.rowAction}>Reset</Text>
+            <View style={styles.rowLeft}>
+              <Text style={styles.rowLabel}>Clear all subjects</Text>
+              <Text style={styles.rowSub}>Re-add via My exams</Text>
+            </View>
+            <Text style={[styles.rowAction, { color: colors.danger }]}>Clear</Text>
           </TouchableOpacity>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.row} onPress={() => {

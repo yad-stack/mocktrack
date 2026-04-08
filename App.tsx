@@ -1,4 +1,3 @@
-import { useVersionCheck } from './src/hooks/useVersionCheck';
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
@@ -9,6 +8,7 @@ import { usePapers } from './src/hooks/usePapers';
 import { useSubjects } from './src/hooks/useSubjects';
 import { supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import PapersScreen from './src/screens/PapersScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
@@ -27,29 +27,61 @@ function useSelectedExams(userId: string | undefined) {
 
   const fetch = useCallback(async () => {
     if (!userId) return;
-    const { data } = await supabase.from('user_exams').select('exam_id').eq('user_id', userId);
+    const { data } = await supabase
+      .from('user_exams')
+      .select('exam_id')
+      .eq('user_id', userId);
     setSelectedExamIds((data || []).map((r: any) => r.exam_id));
   }, [userId]);
 
   useEffect(() => { fetch(); }, [fetch]);
-
   return { selectedExamIds, refetch: fetch };
 }
 
 function AppInner() {
-  const { session, loading } = useAuth();
+  const { session, loading, onboardingComplete, setOnboardingComplete } = useAuth();
   const { papers, addPaper, updatePaper, deletePaper } = usePapers();
-  const { subjects, addSubject, renameSubject, deleteSubject, resetToDefaults, addExamSubjects, removeExamSubjects } = useSubjects();
+  const {
+    subjects, addSubject, renameSubject, deleteSubject,
+    resetToDefaults, addExamSubjects, addExamsSubjects, removeExamSubjects,
+  } = useSubjects();
   const { selectedExamIds, refetch: refetchExams } = useSelectedExams(session?.user?.id);
-  useVersionCheck(); // checks on every app open
 
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingPaper, setEditingPaper] = useState<Paper | null>(null);
   const [detailPaper, setDetailPaper] = useState<Paper | null>(null);
 
-  if (loading) return <View style={styles.loadingScreen}><Text style={styles.loadingText}>MockTrack</Text></View>;
+  if (loading) {
+    return (
+      <View style={styles.loadingScreen}>
+        <Text style={styles.loadingText}>MockTrack</Text>
+      </View>
+    );
+  }
+
   if (!session) return <AuthScreen />;
+
+  // Show onboarding for first-time users
+  if (!onboardingComplete) {
+    return (
+      <OnboardingScreen
+        onComplete={async (examIds) => {
+          const userId = session.user.id;
+          // Save selected exams
+          if (examIds.length > 0) {
+            await supabase.from('user_exams').upsert(
+              examIds.map(examId => ({ user_id: userId, exam_id: examId }))
+            );
+            await addExamsSubjects(examIds);
+            await refetchExams();
+          }
+          // Mark onboarding done
+          await setOnboardingComplete();
+        }}
+      />
+    );
+  }
 
   const handleToggleExam = async (examId: string, selected: boolean) => {
     const userId = session.user.id;
@@ -66,17 +98,11 @@ function AppInner() {
   const handlePaperPress = (p: Paper) => setDetailPaper(p);
 
   const handleDetailEdit = () => {
-    if (detailPaper) {
-      setEditingPaper(detailPaper);
-      setDetailPaper(null);
-    }
+    if (detailPaper) { setEditingPaper(detailPaper); setDetailPaper(null); }
   };
 
   const handleDetailDelete = async () => {
-    if (detailPaper) {
-      await deletePaper(detailPaper.id);
-      setDetailPaper(null);
-    }
+    if (detailPaper) { await deletePaper(detailPaper.id); setDetailPaper(null); }
   };
 
   const tabLabels: { key: Tab; icon: string; label: string }[] = [
