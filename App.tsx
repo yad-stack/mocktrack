@@ -4,6 +4,7 @@ import {
   SafeAreaView, StatusBar, Platform,
 } from 'react-native';
 import { AuthProvider, useAuth } from './src/hooks/useAuth';
+import { useVersionCheck } from './src/hooks/useVersionCheck';
 import { usePapers } from './src/hooks/usePapers';
 import { useSubjects } from './src/hooks/useSubjects';
 import { supabase } from './src/lib/supabase';
@@ -46,6 +47,7 @@ function AppInner() {
     resetToDefaults, addExamSubjects, addExamsSubjects, removeExamSubjects,
   } = useSubjects();
   const { selectedExamIds, refetch: refetchExams } = useSelectedExams(session?.user?.id);
+  useVersionCheck();
 
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [showAddModal, setShowAddModal] = useState(false);
