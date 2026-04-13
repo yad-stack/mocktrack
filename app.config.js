@@ -1,12 +1,8 @@
-// app.config.js — replaces app.json, reads .env automatically
-// Install dotenv first: npm install dotenv --save-dev
-require('dotenv').config();
-
 module.exports = {
   expo: {
     name: 'MockTrack',
     slug: 'mocktrack',
-    version: '1.0.0',
+    version: '1.1.1',
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
@@ -23,12 +19,8 @@ module.exports = {
       package: 'com.garammasala.mocktrack',
     },
     extra: {
-      // These come from your .env file — never hardcode keys here
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-      eas: {
-        projectId: process.env.EAS_PROJECT_ID || 'your-project-id',
-      },
+      supabaseUrl: 'https://rcuwlnxslwkmrqbeznvb.supabase.co',
+      supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjdXdsbnhzbHdrbXJxYmV6bnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzUyOTEsImV4cCI6MjA5MDg1MTI5MX0.Ar_g_sC-KCuEdOifvdSi3cfi-O4BGW7_f_pBVK3iWIA',
     },
   },
 };
