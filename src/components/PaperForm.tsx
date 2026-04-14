@@ -6,6 +6,7 @@ import {
 import { Paper, PaperFormData, PaperType, SectionFormData, Subject, sectionToForm } from '../lib/types';
 import { colors, radius, spacing } from '../lib/theme';
 import { EXAM_DEFINITIONS, getExamById } from '../lib/exams';
+import ImageScanner from './ImageScanner';
 
 interface Props {
   initial?: Paper;
@@ -18,6 +19,7 @@ interface Props {
 const today = new Date().toISOString().split('T')[0];
 
 export default function PaperForm({ initial, subjects, selectedExamIds, onSave, onCancel }: Props) {
+  const [showScanner, setShowScanner] = useState(false);
   const [form, setForm] = useState<PaperFormData>({
     name: initial?.name || '',
     type: initial?.type || 'mock',
@@ -100,6 +102,18 @@ export default function PaperForm({ initial, subjects, selectedExamIds, onSave, 
 
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+
+      {/* Scan from photo button */}
+      {!initial && (
+        <TouchableOpacity style={styles.scanBtn} onPress={() => setShowScanner(true)}>
+          <Text style={styles.scanBtnIcon}>📷</Text>
+          <View style={styles.scanBtnText}>
+            <Text style={styles.scanBtnTitle}>Scan from photo</Text>
+            <Text style={styles.scanBtnSub}>Auto-fill from a screenshot or photo</Text>
+          </View>
+          <Text style={styles.scanBtnArrow}>›</Text>
+        </TouchableOpacity>
+      )}
 
       <SecHeader title="Basic info" />
 
@@ -356,6 +370,26 @@ export default function PaperForm({ initial, subjects, selectedExamIds, onSave, 
         items={[{ label: 'None', value: '' }, ...filteredSubjects.map(s => ({ label: s.name, value: s.name }))]}
         selectedValue={form.subject}
         onSelect={v => { set('subject', v); setShowSubjectModal(false); }} />
+
+      {showScanner && (
+        <ImageScanner
+          onClose={() => setShowScanner(false)}
+          onExtracted={(extracted) => {
+            setForm(f => ({
+              ...f,
+              ...extracted,
+              // Keep user's exam/subject selection if already set
+              exam_id: f.exam_id || extracted.exam_id || '',
+              subject: f.subject || extracted.subject || '',
+            }));
+            Alert.alert(
+              'Data filled in!',
+              'Review and edit the extracted data below before saving.',
+              [{ text: 'OK' }]
+            );
+          }}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -407,6 +441,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  scanBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    margin: spacing.lg, marginBottom: 0,
+    backgroundColor: colors.primaryLight, borderRadius: radius.md,
+    padding: 14, borderWidth: 1, borderColor: colors.primary,
+  },
+  scanBtnIcon: { fontSize: 24 },
+  scanBtnText: { flex: 1 },
+  scanBtnTitle: { fontSize: 15, fontWeight: '500', color: colors.primary },
+  scanBtnSub: { fontSize: 12, color: colors.primaryDark, marginTop: 1 },
+  scanBtnArrow: { fontSize: 20, color: colors.primary },
   pad: { paddingHorizontal: spacing.lg, paddingTop: 14, paddingBottom: 4 },
   row2: { flexDirection: 'row' },
   fieldLabel: { fontSize: 11, fontWeight: '500', color: colors.textSecondary, marginBottom: 5, textTransform: 'uppercase', letterSpacing: 0.5 },

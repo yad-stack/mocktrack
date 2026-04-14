@@ -3,7 +3,7 @@ import { Alert, Linking } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 // Must match your app.json version field
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '1.2.0';
 
 function parseVersion(v: string) {
   return v.split('.').map(Number);
